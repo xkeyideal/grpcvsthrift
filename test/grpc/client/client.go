@@ -40,8 +40,8 @@ type TestGrpcClient struct {
 func NewTestGrpcClient(size, rwRatio int, kvClient pb.KVClient) *TestGrpcClient {
 	tc := &TestGrpcClient{
 		kvClient: kvClient,
-		sendChan: make(chan []byte, 1000),
-		recvChan: make(chan []byte, 1000),
+		sendChan: make(chan []byte, 2000),
+		recvChan: make(chan []byte, 2000),
 
 		mq: messagequeue.NewEntryQueue(1024 * 2),
 
@@ -80,7 +80,7 @@ func (tc *TestGrpcClient) consumeMQ() {
 		case <-ticker.C:
 			stream, err := tc.kvClient.PutStream(context.Background())
 			if err != nil {
-				fmt.Println("1000", err)
+				//fmt.Println("1000", err)
 				counter.Inc(1)
 				continue
 			}
@@ -92,14 +92,14 @@ func (tc *TestGrpcClient) consumeMQ() {
 			for _, req := range reqs {
 				err = stream.Send(req)
 				if err != nil {
-					fmt.Println("2000", err)
+					//fmt.Println("2000", err)
 					counter.Inc(1)
 				}
 			}
 
 			_, err = stream.CloseAndRecv()
 			if err != nil {
-				fmt.Println("3000", err)
+				//fmt.Println("3000", err)
 				counter.Inc(1)
 			}
 			x := time.Now().UnixNano() - st
@@ -132,29 +132,41 @@ exit:
 	tc.wg.Done()
 }
 
-func (tc *TestGrpcClient) Send() {
+func (tc *TestGrpcClient) SingleSend() {
 	tc.wg.Add(1)
 	for {
 		select {
 		case <-tc.exitchan:
 			goto exit
 		case kv := <-tc.sendChan:
-			// st := time.Now().UnixNano()
-			// _, err := tc.kvClient.Put(context.Background(), &pb.PutRequest{Key: kv, Value: kv})
-			// if err != nil {
-			// 	counter.Inc(1)
-			// }
+			st := time.Now().UnixNano()
+			_, err := tc.kvClient.Put(context.Background(), &pb.PutRequest{Key: kv, Value: kv})
+			if err != nil {
+				counter.Inc(1)
+			}
 
-			// x := time.Now().UnixNano() - st
-			// histogram.Update(x)
+			x := time.Now().UnixNano() - st
+			histogram.Update(x)
+		}
+	}
+exit:
+	tc.wg.Done()
+}
 
+func (tc *TestGrpcClient) MultiSend() {
+	tc.wg.Add(1)
+	for {
+		select {
+		case <-tc.exitchan:
+			goto exit
+		case kv := <-tc.sendChan:
 			req := &pb.PutRequest{Key: kv, Value: kv}
 			full, _ := tc.mq.Add(req)
 			if !full {
 				go func() {
 					stream, err := tc.kvClient.PutStream(context.Background())
 					if err != nil {
-						fmt.Println("000", err)
+						//fmt.Println("000", err)
 						counter.Inc(1)
 						return
 					}
@@ -166,14 +178,14 @@ func (tc *TestGrpcClient) Send() {
 					for _, req := range reqs {
 						err = stream.Send(req)
 						if err != nil {
-							fmt.Println("111", err)
+							//fmt.Println("111", err)
 							counter.Inc(1)
 						}
 					}
 
 					_, err = stream.CloseAndRecv()
 					if err != nil {
-						fmt.Println("222", err)
+						//fmt.Println("222", err)
 						counter.Inc(1)
 					}
 
@@ -238,17 +250,23 @@ func main() {
 	c := pb.NewKVClient(client.Conn)
 
 	tc := NewTestGrpcClient(16, 0, c)
-	routineNum := 20
+	routineNum := 1000
 	for i := 0; i < routineNum; i++ {
-		go tc.Send()
-		go tc.Recv()
+		go tc.MultiSend()
+		//go tc.SingleSend()
+		//go tc.Recv()
 	}
 
 	time.Sleep(10 * time.Second)
 
 	tc.Stop()
 
+	// single send
+	//fmt.Printf("总次数: %d, 写错误数: %d, 读错误数: %d, 线程数: %d, 每个线程连接数: %d, 请求次数: %d\n", histogram.Count()/10, counter.Count(), readErrCounter.Count(), 1, 1, 1)
+
+	// multi send
 	fmt.Printf("总次数: %d, 写错误数: %d, 读错误数: %d, 线程数: %d, 每个线程连接数: %d, 请求次数: %d\n", streamCounter.Count()/10, counter.Count(), readErrCounter.Count(), 1, 1, 1)
+
 	fmt.Printf("最小值: %dus, 最大值: %dus, 中间值: %.1fus\n", histogram.Min()/1e3, histogram.Max()/1e3, histogram.Mean()/1e3)
 	fmt.Printf("75百分位: %.1fus, 90百分位: %.1fus, 95百分位: %.1fus, 99百分位: %.1fus\n", histogram.Percentile(0.75)/1e3, histogram.Percentile(0.9)/1e3, histogram.Percentile(0.95)/1e3, histogram.Percentile(0.99)/1e3)
 }

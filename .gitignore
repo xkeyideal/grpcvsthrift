@@ -76,3 +76,7 @@ $RECYCLE.BIN/
 
 # End of https://www.gitignore.io/api/windows,osx,linux,code
 grpcvsthrift
+test/grpc/client/client 
+test/grpc/client/server
+test/thrift/client/client 
+test/thrift/client/server

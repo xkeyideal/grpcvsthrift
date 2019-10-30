@@ -1,42 +1,12 @@
 syntax = "proto3";
 
-import "github.com/gogo/protobuf/gogoproto/gogo.proto";
-import "google/protobuf/timestamp.proto";
-import "google/protobuf/field_mask.proto";
-import "google/protobuf/duration.proto";
-
 package rpcpb;
 
-option (gogoproto.marshaler_all) = true;
-option (gogoproto.unmarshaler_all) = true;
-option (gogoproto.sizer_all) = true;
-option (gogoproto.messagename_all) = false;
-option (gogoproto.goproto_unrecognized_all) = false;
-option (gogoproto.goproto_getters_all) = false;
-option (gogoproto.goproto_sizecache_all) = false;
-option (gogoproto.goproto_unkeyed_all) = false;
-option (gogoproto.populate_all) = true;
-option (gogoproto.testgen_all) = true;
-option (gogoproto.equal_all) = true;
+//protoc -Irpcpb --go_out=plugins=grpc:rpcpb/ rpcpb/rpc.proto
 
 message GetRequest {
-    string trace_id = 1 [
-        (gogoproto.nullable) = true,
-        (gogoproto.moretags) = "yaml:\"traceID\""
-    ];
-    bytes key = 2 [(gogoproto.nullable) = true];
-    bool serializable = 3 [(gogoproto.nullable) = true];
-    ResponseHeader header = 4 [(gogoproto.nullable) = true];
-    google.protobuf.Timestamp create_date = 5 [
-        (gogoproto.stdtime) = true
-    ];
-    google.protobuf.Duration older_than = 6 [
-        (gogoproto.stdduration) = true
-    ];
-    google.protobuf.FieldMask update_mask = 7;
-
-    int32 number = 8 [(gogoproto.nullable) = true];
-    double dnumber = 9 [(gogoproto.nullable) = true];
+    bytes key = 1 ;
+    bool serializable = 2 ;
 }
 
 message GetResponse {

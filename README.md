@@ -2,9 +2,11 @@
 
 本项目主要用于压测GRPC与Thrift的性能, 下述的压测均是指写性能，未压测读性能和读写混合性能， 底层存储使用rocksdb。
 
+压测的数据量：key, value均是16个字节
+
 ### GRPC 压测结果
 
-本台式机GRPC压测结果显示：GPRC使用rpc的性能在5W QPS，使用stream的性能在35W QPS
+本台式机GRPC压测结果显示：GPRC使用rpc的性能在3W QPS，使用stream的性能在30W QPS, 使用gogoprotobuf的rpc性能在2.5W QPS, stream性能在46W QPS
 
 由于为了验证使用gogoprotobuf，导致rpcpb/rpc.proto已经不是原来的生成代码，目前该代码不能运行，后续进行整理
 

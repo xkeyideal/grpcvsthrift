@@ -1,0 +1,57 @@
+syntax = "proto3";
+
+import "github.com/gogo/protobuf/gogoproto/gogo.proto";
+
+package rpcpb;
+
+//protoc -Irpcpb -I $GOPATH/src/  -I /Users/xkey/software/protoc/include/ --gofast_out=plugins=grpc:rpcpb/ rpcpb/rpc.proto
+
+option (gogoproto.marshaler_all) = true;
+option (gogoproto.unmarshaler_all) = true;
+option (gogoproto.sizer_all) = true;
+option (gogoproto.messagename_all) = false;
+option (gogoproto.goproto_unrecognized_all) = false;
+option (gogoproto.goproto_getters_all) = false;
+option (gogoproto.goproto_sizecache_all) = false;
+option (gogoproto.goproto_unkeyed_all) = false;
+option (gogoproto.populate_all) = true;
+option (gogoproto.testgen_all) = true;
+option (gogoproto.equal_all) = true;
+
+message GetRequest {
+    bytes key = 1 [(gogoproto.nullable) = true];
+    bool serializable = 2 [(gogoproto.nullable) = true];
+}
+
+message GetResponse {
+    ResponseHeader header = 1;
+    repeated KeyValue kvs = 2;
+}
+
+message KeyValue {
+    bytes key = 1;
+    bytes value = 2;
+}
+
+message PutRequest {
+    bytes key = 1;
+    bytes value = 2;
+}
+
+message ResponseHeader {
+    uint64 cluster_id = 1;
+    uint64 node_id = 2;
+    uint64 consume_time = 3;
+    string node_ip = 4;
+}
+
+message PutResponse {
+    ResponseHeader header = 1;
+}
+
+service KV {
+    rpc Get(GetRequest) returns (GetResponse);
+    rpc Put(PutRequest) returns (PutResponse);
+    
+    rpc PutStream(stream PutRequest) returns (PutResponse);
+}

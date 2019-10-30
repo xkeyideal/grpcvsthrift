@@ -79,26 +79,26 @@ func (server *GrpcServer) Start() {
 	server.health.SetServingStatus(server.cfg.ServiceName, pb.HealthCheckResponse_SERVING)
 	pb.RegisterHealthServer(grpcServer, server.health)
 
-	go func() {
-		i := 0
-		for {
+	// go func() {
+	// 	i := 0
+	// 	for {
 
-			x := i % 3
-			status := pb.HealthCheckResponse_SERVING
-			if x == 0 {
-				status = pb.HealthCheckResponse_SERVING
-			} else if x == 1 {
-				status = pb.HealthCheckResponse_NOT_SERVING
-			} else if x == 2 {
-				status = pb.HealthCheckResponse_UNKNOWN
-			}
+	// 		x := i % 3
+	// 		status := pb.HealthCheckResponse_SERVING
+	// 		if x == 0 {
+	// 			status = pb.HealthCheckResponse_SERVING
+	// 		} else if x == 1 {
+	// 			status = pb.HealthCheckResponse_NOT_SERVING
+	// 		} else if x == 2 {
+	// 			status = pb.HealthCheckResponse_UNKNOWN
+	// 		}
 
-			server.health.SetServingStatus(server.cfg.ServiceName, status)
+	// 		server.health.SetServingStatus(server.cfg.ServiceName, status)
 
-			i++
-			time.Sleep(2 * time.Second)
-		}
-	}()
+	// 		i++
+	// 		time.Sleep(2 * time.Second)
+	// 	}
+	// }()
 
 	grpcServer.Serve(listener)
 }

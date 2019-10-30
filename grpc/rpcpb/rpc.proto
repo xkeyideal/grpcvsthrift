@@ -34,6 +34,9 @@ message GetRequest {
         (gogoproto.stdduration) = true
     ];
     google.protobuf.FieldMask update_mask = 7;
+
+    int32 number = 8 [(gogoproto.nullable) = true];
+    double dnumber = 9 [(gogoproto.nullable) = true];
 }
 
 message GetResponse {

@@ -252,8 +252,8 @@ func main() {
 	tc := NewTestGrpcClient(16, 0, c)
 	routineNum := 1000
 	for i := 0; i < routineNum; i++ {
-		go tc.MultiSend()
-		//go tc.SingleSend()
+		//go tc.MultiSend()
+		go tc.SingleSend()
 		//go tc.Recv()
 	}
 
@@ -262,10 +262,10 @@ func main() {
 	tc.Stop()
 
 	// single send
-	//fmt.Printf("总次数: %d, 写错误数: %d, 读错误数: %d, 线程数: %d, 每个线程连接数: %d, 请求次数: %d\n", histogram.Count()/10, counter.Count(), readErrCounter.Count(), 1, 1, 1)
+	fmt.Printf("总次数: %d, 写错误数: %d, 读错误数: %d, 线程数: %d, 每个线程连接数: %d, 请求次数: %d\n", histogram.Count()/10, counter.Count(), readErrCounter.Count(), 1, 1, 1)
 
 	// multi send
-	fmt.Printf("总次数: %d, 写错误数: %d, 读错误数: %d, 线程数: %d, 每个线程连接数: %d, 请求次数: %d\n", streamCounter.Count()/10, counter.Count(), readErrCounter.Count(), 1, 1, 1)
+	//fmt.Printf("总次数: %d, 写错误数: %d, 读错误数: %d, 线程数: %d, 每个线程连接数: %d, 请求次数: %d\n", streamCounter.Count()/10, counter.Count(), readErrCounter.Count(), 1, 1, 1)
 
 	fmt.Printf("最小值: %dus, 最大值: %dus, 中间值: %.1fus\n", histogram.Min()/1e3, histogram.Max()/1e3, histogram.Mean()/1e3)
 	fmt.Printf("75百分位: %.1fus, 90百分位: %.1fus, 95百分位: %.1fus, 99百分位: %.1fus\n", histogram.Percentile(0.75)/1e3, histogram.Percentile(0.9)/1e3, histogram.Percentile(0.95)/1e3, histogram.Percentile(0.99)/1e3)

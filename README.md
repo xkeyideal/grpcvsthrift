@@ -6,7 +6,7 @@
 
 ### GRPC 压测结果
 
-GPRC使用rpc的性能在3W QPS，使用stream的性能在30W QPS
+GPRC使用rpc的性能在2.4W QPS，使用stream的性能在35W QPS
 
 使用gogoprotobuf的rpc性能在2.5W QPS, stream性能在46W QPS
 

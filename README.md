@@ -20,6 +20,17 @@ thrift使用单条写的性能在1.3W QPS, 批量(2048条)写的性能在60W QPS
 
 由于thrift没有类似grpc rpc stream的方式，所以性能的提升依赖批量写的条数
 
+thrift的测试连接全部使用的是连接池模式
+
+### 测试代码介绍
+
+1. grpc 目录均是GRPC协议相关的代码，grpc/rpcpb目录下是协议生成代码
+2. thrift目录均是Thrift协议相关的代码，thrift/rpc目录下是协议的生成代码
+3. test/grpc是GRPC的压测代码, 分别是client.go 和 server.go
+4. test/thrift是Thrift的压测代码, 分别是client.go 和 server.go
+5. rocksdbstore目录是RocksDB的存储代码，RocksDB的调参优化全部在store.go文件中
+6. grpc使用的是v1.24.0版本, thrift使用的是v0.12.0版本, RocksDB使用的是v6.1.2版本
+
 ### Reference 
 
 * [https://github.com/etcd-io/etcd/clientv3/balancer](https://github.com/etcd-io/etcd)

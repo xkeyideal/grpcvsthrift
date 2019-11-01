@@ -4,18 +4,15 @@ import (
 	"context"
 	"fmt"
 	pb "grpcvsthrift/grpc/rpcpb"
-	"io"
 	"time"
-
-	"github.com/tecbot/gorocksdb"
 )
 
 func (server *GrpcServer) Get(ctx context.Context, req *pb.GetRequest) (*pb.GetResponse, error) {
 	st := time.Now()
-	val, err := server.rocksdbStore.Lookup(req.Key)
-	if err != nil {
-		return nil, err
-	}
+	// val, err := server.rocksdbStore.Lookup(req.Key)
+	// if err != nil {
+	// 	return nil, err
+	// }
 
 	resp := &pb.GetResponse{
 		Header: &pb.ResponseHeader{
@@ -27,7 +24,7 @@ func (server *GrpcServer) Get(ctx context.Context, req *pb.GetRequest) (*pb.GetR
 
 	resp.Kvs = append(resp.Kvs, &pb.KeyValue{
 		Key:   req.Key,
-		Value: val,
+		Value: req.Key,
 	})
 
 	return resp, nil
@@ -35,10 +32,10 @@ func (server *GrpcServer) Get(ctx context.Context, req *pb.GetRequest) (*pb.GetR
 
 func (server *GrpcServer) Put(ctx context.Context, req *pb.PutRequest) (*pb.PutResponse, error) {
 	st := time.Now()
-	err := server.rocksdbStore.Write(req.Key, req.Value)
-	if err != nil {
-		return nil, err
-	}
+	// err := server.rocksdbStore.Write(req.Key, req.Value)
+	// if err != nil {
+	// 	return nil, err
+	// }
 
 	resp := &pb.PutResponse{
 		Header: &pb.ResponseHeader{
@@ -51,33 +48,33 @@ func (server *GrpcServer) Put(ctx context.Context, req *pb.PutRequest) (*pb.PutR
 }
 
 func (server *GrpcServer) PutStream(stream pb.KV_PutStreamServer) error {
-	wb := gorocksdb.NewWriteBatch()
-	defer wb.Destroy()
+	// wb := gorocksdb.NewWriteBatch()
+	// defer wb.Destroy()
 
 	st := time.Now()
 
-	for {
-		req, err := stream.Recv()
-		if err == io.EOF {
-			break
-		}
+	// for {
+	// 	req, err := stream.Recv()
+	// 	if err == io.EOF {
+	// 		break
+	// 	}
 
-		if err != nil {
-			break
-			//return err
-		}
+	// 	if err != nil {
+	// 		break
+	// 		//return err
+	// 	}
 
-		wb.Put(req.Key, req.Value)
-		// err = server.rocksdbStore.Write(req.Key, req.Value)
-		// if err != nil {
-		// 	return err
-		// }
-	}
+	// 	wb.Put(req.Key, req.Value)
+	// 	// err = server.rocksdbStore.Write(req.Key, req.Value)
+	// 	// if err != nil {
+	// 	// 	return err
+	// 	// }
+	// }
 
-	err := server.rocksdbStore.BatchWrite(wb)
-	if err != nil {
-		return err
-	}
+	// err := server.rocksdbStore.BatchWrite(wb)
+	// if err != nil {
+	// 	return err
+	// }
 
 	resp := &pb.PutResponse{
 		Header: &pb.ResponseHeader{

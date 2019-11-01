@@ -4,7 +4,6 @@ import (
 	"fmt"
 	pb "grpcvsthrift/grpc/rpcpb"
 	"grpcvsthrift/grpc/server/api"
-	"grpcvsthrift/rocksdbstore"
 	"math"
 	"net"
 	"time"
@@ -37,22 +36,22 @@ type GrpcServer struct {
 
 	health *api.HealthServer
 
-	rocksdbStore *rocksdbstore.RocksdbStore
+	//rocksdbStore *rocksdbstore.RocksdbStore
 
 	listener net.Listener
 }
 
 func NewGrpcServer(config *ServerConfig) *GrpcServer {
-	store, err := rocksdbstore.NewRocksdbStore(config.RocksDBDir)
+	// store, err := rocksdbstore.NewRocksdbStore(config.RocksDBDir)
 
-	if err != nil {
-		panic(err)
-	}
+	// if err != nil {
+	// 	panic(err)
+	// }
 
 	return &GrpcServer{
-		cfg:          config,
-		health:       api.NewHealthServer(),
-		rocksdbStore: store,
+		cfg:    config,
+		health: api.NewHealthServer(),
+		//rocksdbStore: store,
 	}
 }
 
@@ -105,5 +104,5 @@ func (server *GrpcServer) Start() {
 
 func (server *GrpcServer) Stop() {
 	server.listener.Close()
-	server.rocksdbStore.Close()
+	//server.rocksdbStore.Close()
 }

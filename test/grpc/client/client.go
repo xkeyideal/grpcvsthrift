@@ -35,6 +35,8 @@ type TestGrpcClient struct {
 
 	kvSize  int
 	rwRatio int // 读写比例
+
+	closed bool
 }
 
 func NewTestGrpcClient(size, rwRatio int, kvClient pb.KVClient) *TestGrpcClient {
@@ -56,7 +58,7 @@ func NewTestGrpcClient(size, rwRatio int, kvClient pb.KVClient) *TestGrpcClient 
 	}
 
 	go tc.genData()
-	go tc.consumeMQ()
+	//go tc.consumeMQ()
 
 	return tc
 }
@@ -119,16 +121,24 @@ func (tc *TestGrpcClient) genData() {
 		case <-tc.exitchan:
 			goto exit
 		default:
+			// if tc.closed {
+			// 	goto exit
+			// }
 			n := tc.rnd(0, 100)
 			kv := generate.GenRandomBytes(tc.kvSize)
 			if n < tc.rwRatio {
 				tc.recvChan <- kv
 			} else {
-				tc.sendChan <- kv
+				select {
+				case tc.sendChan <- kv:
+				case <-tc.exitchan:
+					goto exit
+				}
 			}
 		}
 	}
 exit:
+	fmt.Println("exit genData")
 	tc.wg.Done()
 }
 
@@ -142,14 +152,17 @@ func (tc *TestGrpcClient) SingleSend() {
 			st := time.Now().UnixNano()
 			_, err := tc.kvClient.Put(context.Background(), &pb.PutRequest{Key: kv, Value: kv})
 			if err != nil {
+				fmt.Println(err)
 				counter.Inc(1)
 			}
+			//fmt.Println("xxxxxx")
 
 			x := time.Now().UnixNano() - st
 			histogram.Update(x)
 		}
 	}
 exit:
+	fmt.Println("exit SingleSend")
 	tc.wg.Done()
 }
 
@@ -196,6 +209,7 @@ func (tc *TestGrpcClient) MultiSend() {
 		}
 	}
 exit:
+	//fmt.Println("exit SingleSend")
 	tc.wg.Done()
 }
 
@@ -222,10 +236,19 @@ exit:
 
 func (tc *TestGrpcClient) Stop() {
 	close(tc.exitchan)
+	tc.closed = true
 	tc.wg.Wait()
+	fmt.Println("wait")
 }
 
 func main() {
+	// if len(os.Args) <= 1 {
+	// 	fmt.Println("input arg $1 address")
+	// 	os.Exit(1)
+	// }
+
+	// address := os.Args[1]
+
 	s := metrics.NewExpDecaySample(10240, 0.015) // or metrics.NewUniformSample(1028)
 	histogram = metrics.NewHistogram(s)
 
@@ -234,7 +257,8 @@ func main() {
 	streamCounter = metrics.NewCounter()
 
 	cfg := &client.Config{
-		Endpoints:            []string{"localhost:50051"},
+		Endpoints: []string{"10.100.173.193:50051"},
+		//Endpoints:            []string{address},
 		DialKeepAliveTime:    5 * time.Second,
 		DialKeepAliveTimeout: 1 * time.Second,
 		PermitWithoutStream:  true,
@@ -249,15 +273,20 @@ func main() {
 
 	c := pb.NewKVClient(client.Conn)
 
+	// resp, err := c.Get(context.Background(), &pb.GetRequest{Key: []byte("xxxx")})
+	// fmt.Println(resp, err)
+
+	// return
+
 	tc := NewTestGrpcClient(16, 0, c)
-	routineNum := 1000
+	routineNum := 1
 	for i := 0; i < routineNum; i++ {
 		//go tc.MultiSend()
 		go tc.SingleSend()
 		//go tc.Recv()
 	}
 
-	time.Sleep(10 * time.Second)
+	time.Sleep(5 * time.Second)
 
 	tc.Stop()
 

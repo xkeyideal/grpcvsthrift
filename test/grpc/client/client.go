@@ -122,9 +122,17 @@ func (tc *TestGrpcClient) genData() {
 			n := tc.rnd(0, 100)
 			kv := generate.GenRandomBytes(tc.kvSize)
 			if n < tc.rwRatio {
-				tc.recvChan <- kv
+				select {
+				case tc.recvChan <- kv:
+				case <-tc.exitchan:
+					goto exit
+				}
 			} else {
-				tc.sendChan <- kv
+				select {
+				case tc.sendChan <- kv:
+				case <-tc.exitchan:
+					goto exit
+				}
 			}
 		}
 	}

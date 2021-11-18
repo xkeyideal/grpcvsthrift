@@ -82,14 +82,14 @@ func (p *ThriftPool) Get() (*IdleClient, error) {
 	if atomic.LoadUint32(&p.status) == poolStop {
 		return nil, ErrPoolClosed
 	}
-
+	
+	p.lock.Lock()
 	// 判断是否超额
 	if p.idle.Len() == 0 && p.count >= p.maxConn {
 		p.lock.Unlock()
 		return nil, ErrOverMax
 	}
-
-	p.lock.Lock()
+	
 	if p.idle.Len() == 0 {
 		p.lock.Unlock()
 
